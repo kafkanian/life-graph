@@ -23,17 +23,30 @@
             max-width: 900px;
             width: 100%;
             text-align: center;
+            box-sizing: border-box;
         }
         h1 { color: #ff6b6b; margin-bottom: 5px; }
-        .info-tag {
-            display: inline-block;
+        
+        .config-section {
             background: #eef2f7;
-            padding: 5px 15px;
+            padding: 10px 20px;
             border-radius: 15px;
-            font-size: 0.9em;
-            color: #555;
+            font-size: 0.95em;
+            color: #333;
             margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
         }
+        .birth-input {
+            width: 80px;
+            padding: 5px;
+            text-align: center;
+            font-weight: bold;
+            border: 2px solid #4ecdc4;
+            border-radius: 8px;
+        }
+
         .input-section {
             background: #fff9f9;
             padding: 20px;
@@ -55,7 +68,7 @@
             font-size: 15px;
         }
         .name-input { font-weight: bold; border-color: #4ecdc4; text-align: center; }
-        
+                
         button {
             padding: 10px 20px;
             background-color: #4ecdc4;
@@ -69,73 +82,79 @@
         button:hover { background-color: #45b7af; }
 
         #capture-area {
-            padding: 20px;
+            padding: 30px 20px;
             background: white;
             border-radius: 15px;
+            box-sizing: border-box;
         }
-        .display-name { font-size: 1.5em; color: #333; margin-bottom: 15px; font-weight: bold; }
-        
+        .display-name { font-size: 1.5em; color: #333; margin-bottom: 25px; font-weight: bold; }
+                
         .content-layout {
             display: flex;
-            gap: 20px;
+            flex-direction: column;
+            gap: 30px;
             margin-top: 20px;
-            flex-wrap: wrap;
         }
+        
         #chart-container {
-            flex: 2;
-            min-width: 300px;
-            height: 350px;
+            width: 100%;
+            height: 380px;
+            position: relative;
         }
+        
         #timeline {
-            flex: 1;
-            min-width: 280px;
+            width: 100%;
             text-align: left;
             background: #fdfdfd;
             border: 1px solid #eee;
             border-radius: 10px;
-            padding: 15px;
-            max-height: 350px;
-            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .timeline-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-            padding: 8px;
+            margin-bottom: 12px;
+            padding: 12px;
             background: #fff;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            font-size: 0.9em;
+            font-size: 0.95em;
         }
         .item-text { flex: 1; }
-        .timeline-year { font-weight: bold; color: #ff6b6b; margin-right: 5px; }
+        .timeline-year { font-weight: bold; color: #ff6b6b; margin-right: 8px; }
         .delete-btn {
             background-color: #ff8787;
-            padding: 3px 8px;
-            font-size: 11px;
+            padding: 4px 10px;
+            font-size: 12px;
             margin-left: 10px;
         }
         .delete-btn:hover { background-color: #fa5252; }
-
+        
         .save-btn {
             margin-top: 30px;
             background-color: #4dabf7;
             font-size: 1.1em;
             padding: 15px 30px;
         }
+        .save-btn:hover { background-color: #3b8dd9; }
     </style>
 </head>
 <body>
-
 <div class="container">
     <h1>🌟 나의 인생 그래프 🌟</h1>
-    <div class="info-tag">📅 2026학년도 3학년 (2017년생) 전용</div>
+    
+    <div class="config-section">
+        <span>☀️ 내가 태어난 해:</span>
+        <input type="number" id="birthYear" class="birth-input" value="2017" onchange="updateAllAges()">
+        <span>년</span>
+    </div>
 
     <div class="input-section">
         <input type="text" id="userName" class="name-input" placeholder="이름을 적어주세요" oninput="updateName()">
         <div class="input-group">
-            <input type="number" id="age" placeholder="나이(0~9)" min="0" max="10" style="width: 85px;">
+            <input type="number" id="eventYear" placeholder="당시 연도(4자리)" min="1900" max="2100" style="width: 130px;">
             <input type="text" id="event" placeholder="무슨 일이 있었나요?" style="width: 200px;">
             <select id="score">
                 <option value="100">🤩 최고! (100)</option>
@@ -147,7 +166,7 @@
             <button onclick="addData()">입력하기</button>
         </div>
     </div>
-
+    
     <div id="capture-area">
         <div id="displayName" class="display-name">OOO의 인생 그래프</div>
         <div class="content-layout">
@@ -155,21 +174,20 @@
                 <canvas id="myLifeChart"></canvas>
             </div>
             <div id="timeline">
-                <h3 style="margin-top:0; color:#555; border-bottom: 2px solid #eee; padding-bottom: 5px;">📜 인생 연표</h3>
+                <h3 style="margin-top:0; color:#555; border-bottom: 2px solid #eee; padding-bottom: 8px;">📜 인생 연표</h3>
                 <div id="timelineList"><p style="color:#aaa;">데이터를 입력해 주세요!</p></div>
             </div>
         </div>
     </div>
-    
+        
     <button class="save-btn" onclick="saveAsImage()">📸 사진으로 저장하여 제출하기</button>
 </div>
 
 <script>
     const ctx = document.getElementById('myLifeChart').getContext('2d');
     let lifeData = [];
-
     const emojiMap = { "100": "🤩", "70": "😊", "50": "😐", "30": "😢", "0": "😭" };
-
+    
     const myChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -198,48 +216,70 @@
         document.getElementById('displayName').innerText = (name || "OOO") + "의 인생 그래프";
     }
 
+    // 상단 출생 연도가 바뀌면 입력된 연도를 기준으로 나이(age)들을 일괄 재계산
+    function updateAllAges() {
+        const birthYear = parseInt(document.getElementById('birthYear').value) || 2017;
+        lifeData = lifeData.map(d => {
+            d.age = d.year - birthYear;
+            return d;
+        });
+        // 출생 연도 변경으로 나이가 마이너스가 된 항목이 생길 수 있으므로 정렬 후 업데이트
+        lifeData.sort((a, b) => a.age - b.age);
+        updateUI();
+    }
+
     function addData() {
-        const ageEl = document.getElementById('age');
+        const yearEl = document.getElementById('eventYear');
         const eventEl = document.getElementById('event');
         const scoreEl = document.getElementById('score');
+        const birthYear = parseInt(document.getElementById('birthYear').value) || 2017;
 
-        if (ageEl.value === "" || eventEl.value === "") {
-            alert("나이와 내용을 입력해주세요!");
+        if (yearEl.value === "" || eventEl.value === "") {
+            alert("연도와 내용을 입력해주세요!");
             return;
         }
 
-        // 중복 나이 체크 (원할 경우 수정 가능하도록 기존 데이터 삭제 후 새 데이터로 넣는 방식도 가능)
-        const existingIdx = lifeData.findIndex(d => d.age === parseInt(ageEl.value));
+        const inputYear = parseInt(yearEl.value);
+        const calculatedAge = inputYear - birthYear;
+
+        // 예외 처리: 출생 연도 이전의 연도를 입력한 경우
+        if (calculatedAge < 0) {
+            alert(`태어난 해(${birthYear}년)보다 이전 연도는 입력할 수 없어요!`);
+            return;
+        }
+
+        // 중복 연도 체크
+        const existingIdx = lifeData.findIndex(d => d.year === inputYear);
         if (existingIdx !== -1) {
-            if(confirm("해당 나이에 이미 기록이 있어요. 바꿀까요?")) {
+            if(confirm(`${inputYear}년에 이미 기록이 있어요. 바꿀까요?`)) {
                 lifeData.splice(existingIdx, 1);
             } else { return; }
         }
 
         lifeData.push({
-            id: Date.now(), // 삭제를 위한 고유 ID
-            age: parseInt(ageEl.value),
+            id: Date.now(), 
+            age: calculatedAge, // 입력한 연도 - 출생 연도로 나이 자동 계산!
             event: eventEl.value,
             score: parseInt(scoreEl.value),
-            year: 2017 + parseInt(ageEl.value),
+            year: inputYear,
             emoji: emojiMap[scoreEl.value]
         });
-        
+                
+        // 나이 순(시간 순)으로 자동 정렬
         lifeData.sort((a, b) => a.age - b.age);
         updateUI();
-
-        ageEl.value = "";
+        yearEl.value = "";
         eventEl.value = "";
     }
 
-    // 항목 삭제 기능
     function deleteData(id) {
         lifeData = lifeData.filter(d => d.id !== id);
         updateUI();
     }
 
     function updateUI() {
-        myChart.data.labels = lifeData.map(d => d.age + '살');
+        // 차트와 연표 모두 계산된 나이와 연도를 함께 활용하여 표시
+        myChart.data.labels = lifeData.map(d => d.age + '살 (' + d.year + '년)');
         myChart.data.datasets[0].data = lifeData.map(d => d.score);
         myChart.update();
 
@@ -248,7 +288,7 @@
             : lifeData.map(d => `
                 <div class="timeline-item">
                     <div class="item-text">
-                        <span class="timeline-year">${d.year}년</span>
+                        <span class="timeline-year">${d.year}년(${d.age}살)</span>
                         <span>${d.emoji} ${d.event}</span>
                     </div>
                     <button class="delete-btn" onclick="deleteData(${d.id})">삭제</button>
@@ -258,25 +298,25 @@
     }
 
     function saveAsImage() {
-        // 사진 저장 시 버튼들은 안 보이게 하기 위해 capture-area만 지정
         const area = document.getElementById('capture-area');
         const name = document.getElementById('userName').value || "나";
-        
-        // 삭제 버튼이 사진에 나오지 않도록 임시로 가림
+                
         const delBtns = document.querySelectorAll('.delete-btn');
         delBtns.forEach(b => b.style.display = 'none');
 
-        html2canvas(area).then(canvas => {
+        html2canvas(area, {
+            scale: 2, 
+            logging: false,
+            useCORS: true
+        }).then(canvas => {
             const link = document.createElement('a');
             link.download = name + '_인생그래프.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
-            
-            // 저장 후 버튼 다시 보이게 함
+                        
             delBtns.forEach(b => b.style.display = 'inline-block');
         });
     }
 </script>
-
 </body>
 </html>
